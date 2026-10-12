@@ -1,0 +1,594 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#151812">
+  <meta name="description" content="JALSTORE: zona militar, tecnología y novedades de temporada.">
+  <title>JALSTORE | Todo en un solo lugar</title>
+  <style>
+    :root {
+      --bg: #11130f;
+      --panel: #1b1e18;
+      --panel2: #24281f;
+      --olive: #a2ad54;
+      --gold: #d6b66c;
+      --text: #f5f3eb;
+      --muted: #a6aa9c;
+      --line: #35392e;
+      --danger: #e58c82;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    .wrap { width: min(1120px, 92%); margin: auto; }
+    header {
+      position: sticky; top: 0; z-index: 10;
+      background: rgba(17,19,15,.96);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+    .topbar {
+      min-height: 70px; display: flex; align-items: center;
+      justify-content: space-between; gap: 12px;
+    }
+    .brand { font-weight: 900; font-size: 25px; letter-spacing: 2px; }
+    .brand span { color: var(--olive); }
+    .cart-button, .btn {
+      border: 0; border-radius: 10px; padding: 12px 15px;
+      font-weight: 800; background: var(--olive); color: #151710;
+    }
+    .cart-button { white-space: nowrap; }
+    .hero {
+      padding: 48px 0 34px;
+      background:
+        radial-gradient(ellipse at 85% 15%, #41482b 0%, transparent 42%),
+        linear-gradient(135deg, #1b2017, #11130f 70%);
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow {
+      color: var(--gold); font-size: 12px; font-weight: 800;
+      letter-spacing: 3px; text-transform: uppercase;
+    }
+    h1 { font-size: clamp(38px, 8vw, 66px); line-height: .99; margin: 15px 0; }
+    h1 span { color: var(--olive); }
+    .hero p { max-width: 530px; line-height: 1.6; color: var(--muted); }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .btn.secondary {
+      background: transparent; color: var(--text);
+      border: 1px solid #60664a;
+    }
+    .zones { display: grid; grid-template-columns: 1fr; gap: 12px; padding: 26px 0; }
+    .zone {
+      display: block; text-align: left; padding: 20px;
+      min-height: 112px; border: 1px solid var(--line);
+      border-radius: 15px; color: var(--text);
+      background: linear-gradient(135deg, #24291e, #181a15);
+    }
+    .zone .symbol { font-size: 24px; }
+    .zone strong { display: block; margin: 10px 0 5px; letter-spacing: .6px; }
+    .zone small { color: var(--muted); }
+    section.catalog { padding: 20px 0 50px; }
+    .section-head {
+      display: flex; flex-wrap: wrap; justify-content: space-between;
+      align-items: end; gap: 14px; margin-bottom: 18px;
+    }
+    h2 { font-size: 25px; margin: 0 0 7px; }
+    .subtext { color: var(--muted); font-size: 14px; }
+    .filters { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
+    input, select, textarea {
+      width: 100%; border-radius: 10px; padding: 12px;
+      border: 1px solid var(--line); background: #191c16; color: var(--text);
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .chip {
+      border: 1px solid var(--line); background: #191c16; color: var(--text);
+      padding: 9px 12px; border-radius: 999px; font-size: 13px;
+    }
+    .chip.active { background: var(--olive); color: #151710; border-color: var(--olive); }
+    .products { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+    .product {
+      min-width: 0; border: 1px solid var(--line);
+      border-radius: 13px; overflow: hidden; background: var(--panel);
+    }
+    .product-image {
+      aspect-ratio: 1 / 1; background: #22251e;
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .product-image img { width: 100%; height: 100%; object-fit: contain; }
+    .no-image { color: #777d6b; font-size: 42px; }
+    .product-info { padding: 12px; }
+    .category-label {
+      color: var(--gold); font-size: 10px; text-transform: uppercase;
+      letter-spacing: 1px; font-weight: 800;
+    }
+    .product h3 { font-size: 15px; margin: 8px 0; line-height: 1.3; overflow-wrap: anywhere; }
+    .description { color: var(--muted); font-size: 12px; line-height: 1.4; min-height: 32px; }
+    .price { color: var(--olive); font-size: 19px; font-weight: 900; margin: 12px 0; }
+    .stock { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+    .product .btn { width: 100%; padding: 10px 7px; font-size: 12px; }
+    .empty, .notice {
+      border: 1px dashed var(--line); border-radius: 12px;
+      padding: 22px; color: var(--muted); text-align: center; line-height: 1.5;
+    }
+    .notice { margin-bottom: 15px; }
+    footer { border-top: 1px solid var(--line); padding: 25px 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .overlay {
+      position: fixed; inset: 0; z-index: 30; background: #000b;
+      display: none; align-items: end; justify-content: center;
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      width: 100%; max-width: 600px; max-height: 92dvh; overflow: auto;
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 18px 18px 0 0; padding: 20px;
+    }
+    .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .modal-head h2 { font-size: 22px; }
+    .close {
+      border: 1px solid var(--line); background: transparent; color: var(--text);
+      border-radius: 8px; padding: 7px 11px;
+    }
+    .cart-row {
+      display: grid; grid-template-columns: 1fr auto; gap: 10px;
+      padding: 13px 0; border-bottom: 1px solid var(--line);
+    }
+    .cart-row small { display: block; color: var(--muted); margin-top: 5px; }
+    .quantity { display: flex; gap: 7px; align-items: center; margin-top: 9px; }
+    .quantity button {
+      background: var(--panel2); color: var(--text);
+      border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px;
+    }
+    .total { display: flex; justify-content: space-between; padding: 18px 0; font-weight: 900; font-size: 20px; }
+    .form-grid { display: grid; gap: 12px; }
+    .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .full { width: 100%; }
+    .status { font-size: 13px; line-height: 1.5; margin: 12px 0; }
+    .status.error { color: var(--danger); }
+    .status.success { color: var(--olive); }
+    .hidden { display: none !important; }
+    @media (min-width: 650px) {
+      .hero { padding: 72px 0 54px; }
+      .zones { grid-template-columns: repeat(3, 1fr); }
+      .filters { grid-template-columns: 2fr 1fr; }
+      .products { grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+      .overlay { align-items: center; padding: 20px; }
+      .modal { border-radius: 18px; }
+    }
+    @media (min-width: 900px) {
+      .products { grid-template-columns: repeat(4, minmax(0,1fr)); }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap topbar">
+    <a class="brand" href="#" aria-label="JALSTORE inicio">JAL<span>STORE</span></a>
+    <button class="cart-button" id="openCart">🛒 Carrito (<span id="cartCount">0</span>)</button>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow">Tu estilo. Tu tecnología. Tu equipo.</div>
+      <h1>TODO LO QUE BUSCAS,<br><span>EN UN SOLO LUGAR.</span></h1>
+      <p>Explora productos para tu día a día, equipo y accesorios tecnológicos, además de perfumes y novedades de temporada.</p>
+      <div class="hero-actions">
+        <a class="btn" href="#catalogo">Explorar productos</a>
+        <a class="btn secondary" href="#zonas">Descubrir las zonas</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap" id="zonas">
+    <div class="zones">
+      <button class="zone" data-category="ZONA MILITAR">
+        <span class="symbol">🛡️</span>
+        <strong>ZONA MILITAR</strong>
+        <small>Equipo y accesorios tácticos</small>
+      </button>
+      <button class="zone" data-category="ZONA TECNOLÓGICA">
+        <span class="symbol">⚡</span>
+        <strong>ZONA TECNOLÓGICA</strong>
+        <small>Accesorios y tecnología</small>
+      </button>
+      <button class="zone" data-category="NOVEDADES DE TEMPORADA">
+        <span class="symbol">✦</span>
+        <strong>NOVEDADES DE TEMPORADA</strong>
+        <small>Perfumes y nuevos productos</small>
+      </button>
+    </div>
+  </section>
+
+  <section class="catalog wrap" id="catalogo">
+    <div class="section-head">
+      <div>
+        <h2>Nuestro catálogo</h2>
+        <div class="subtext">Encuentra tu próximo favorito.</div>
+      </div>
+      <div class="subtext" id="productCount">Cargando productos…</div>
+    </div>
+
+    <div id="loadNotice" class="notice">Conectando con el catálogo de JALSTORE…</div>
+
+    <div class="filters">
+      <input id="search" type="search" placeholder="Buscar productos…" aria-label="Buscar productos">
+      <select id="sort" aria-label="Ordenar productos">
+        <option value="default">Ordenar por relevancia</option>
+        <option value="low">Precio: menor a mayor</option>
+        <option value="high">Precio: mayor a menor</option>
+        <option value="name">Nombre: A-Z</option>
+      </select>
+    </div>
+
+    <div class="chips" id="categoryChips">
+      <button class="chip active" data-category="TODOS">Todos</button>
+      <button class="chip" data-category="ZONA MILITAR">Zona militar</button>
+      <button class="chip" data-category="ZONA TECNOLÓGICA">Zona tecnológica</button>
+      <button class="chip" data-category="NOVEDADES DE TEMPORADA">Novedades</button>
+    </div>
+
+    <div id="products" class="products"></div>
+    <div id="emptyProducts" class="empty hidden">No encontramos productos con esos filtros. Prueba otra búsqueda.</div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <strong>JALSTORE</strong><br>
+    Zona militar · Zona tecnológica · Novedades de temporada<br>
+    Los precios y la disponibilidad se confirman al realizar el pedido.
+  </div>
+</footer>
+
+<div class="overlay" id="cartOverlay" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="cartTitle">Tu carrito</h2>
+      <button class="close" data-close="cartOverlay" aria-label="Cerrar">✕</button>
+    </div>
+    <div id="cartItems"></div>
+    <div class="total"><span>Total</span><span id="cartTotal">S/ 0.00</span></div>
+    <button class="btn full" id="goCheckout">Continuar con mis datos</button>
+    <p class="subtext">El pedido se enviará para confirmar disponibilidad y entrega.</p>
+  </div>
+</div>
+
+<div class="overlay" id="checkoutOverlay" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="checkoutTitle">Datos del pedido</h2>
+      <button class="close" data-close="checkoutOverlay" aria-label="Cerrar">✕</button>
+    </div>
+    <form id="checkoutForm" class="form-grid">
+      <div class="field">
+        <label for="customer">Nombre completo *</label>
+        <input id="customer" name="cliente" required autocomplete="name">
+      </div>
+      <div class="field">
+        <label for="phone">Teléfono / WhatsApp *</label>
+        <input id="phone" name="telefono" required type="tel" autocomplete="tel">
+      </div>
+      <div class="field">
+        <label for="district">Distrito *</label>
+        <input id="district" name="distrito" required>
+      </div>
+      <div class="field">
+        <label for="address">Dirección de entrega *</label>
+        <input id="address" name="direccion" required autocomplete="street-address">
+      </div>
+      <div class="field">
+        <label for="payment">Método de pago *</label>
+        <select id="payment" name="metodoPago" required>
+          <option value="">Seleccionar…</option>
+          <option value="Yape">Yape</option>
+          <option value="Plin">Plin</option>
+          <option value="Transferencia bancaria">Transferencia bancaria</option>
+          <option value="Pago contra entrega">Pago contra entrega (por confirmar)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="notes">Notas adicionales (opcional)</label>
+        <textarea id="notes" name="notas" rows="2" placeholder="Referencia, color u otra indicación"></textarea>
+      </div>
+      <div class="total"><span>Total del pedido</span><span id="checkoutTotal">S/ 0.00</span></div>
+      <div id="checkoutStatus" class="status" aria-live="polite"></div>
+      <button class="btn full" id="submitOrder" type="submit">Registrar pedido y continuar</button>
+      <button class="btn secondary full" type="button" data-close="checkoutOverlay">Volver al carrito</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  // CONFIGURACIÓN DE JALSTORE
+  const API_URL = "https://script.google.com/macros/s/AKfycbyGB0YYGuxhgFnqKa77LEagTVUST0o4RFrjm-fu8KmRJPvT5OOtPkqhnLMNzcGd8Rav/exec";
+
+  // Pendiente: reemplazar por el número oficial de WhatsApp, con código de país.
+  // Ejemplo para Perú: 51987654321 (solo dígitos, sin + ni espacios).
+  const WHATSAPP_NUMBER = "";
+
+  const CATEGORIES = [
+    "ZONA MILITAR",
+    "ZONA TECNOLÓGICA",
+    "NOVEDADES DE TEMPORADA"
+  ];
+
+  let products = [];
+  let cart = [];
+  let activeCategory = "TODOS";
+  let orderInProgress = false;
+
+  const $ = id => document.getElementById(id);
+  const money = value => "S/ " + Number(value || 0).toFixed(2);
+  const safe = value => String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  }[char]));
+
+  function normalizeCategory(value) {
+    const text = String(value || "").trim().toLocaleUpperCase("es");
+    if (text.includes("MILITAR") || text.includes("TÁCTIC") || text.includes("TACTIC")) return "ZONA MILITAR";
+    if (text.includes("TECNOL")) return "ZONA TECNOLÓGICA";
+    if (text.includes("NOVEDAD") || text.includes("TEMPORADA") || text.includes("PERFUME")) return "NOVEDADES DE TEMPORADA";
+    return text;
+  }
+
+  async function loadProducts() {
+    $("loadNotice").textContent = "Conectando con el catálogo de JALSTORE…";
+    try {
+      const response = await fetch(API_URL + "?action=productos");
+      if (!response.ok) throw new Error("Respuesta HTTP " + response.status);
+      const data = await response.json();
+      if (!Array.isArray(data)) throw new Error(data.error || "Formato de catálogo inesperado");
+
+      products = data
+        .filter(p => p && (p.activo === true || String(p.activo).toUpperCase() === "TRUE"))
+        .map(p => ({
+          ...p,
+          id: String(p.id ?? ""),
+          producto: String(p.producto ?? "Producto"),
+          categoria: normalizeCategory(p.categoria),
+          precio: Number(p.precio) || 0,
+          stock: Number(p.stock) || 0
+        }));
+
+      $("loadNotice").classList.add("hidden");
+      renderProducts();
+    } catch (error) {
+      $("loadNotice").classList.remove("hidden");
+      $("loadNotice").textContent =
+        "No pudimos cargar el catálogo automáticamente. Verifica la conexión del backend y vuelve a cargar la página.";
+      $("productCount").textContent = "Catálogo no disponible";
+      console.error("Error cargando productos:", error);
+    }
+  }
+
+  function filteredProducts() {
+    const query = $("search").value.trim().toLocaleLowerCase("es");
+    let result = products.filter(p => {
+      const categoryMatch = activeCategory === "TODOS" || p.categoria === activeCategory;
+      const text = [p.producto, p.marca, p.categoria, p.subcategoria, p.descripcion].join(" ").toLocaleLowerCase("es");
+      return categoryMatch && text.includes(query);
+    });
+
+    if ($("sort").value === "low") result.sort((a,b) => a.precio - b.precio);
+    if ($("sort").value === "high") result.sort((a,b) => b.precio - a.precio);
+    if ($("sort").value === "name") result.sort((a,b) => a.producto.localeCompare(b.producto, "es"));
+    return result;
+  }
+
+  function renderProducts() {
+    const result = filteredProducts();
+    $("productCount").textContent = result.length + (result.length === 1 ? " producto" : " productos");
+    $("products").innerHTML = result.map(p => {
+      const image = p.imagen
+        ? `<img src="${safe(p.imagen)}" alt="${safe(p.producto)}" loading="lazy" onerror="this.remove()">`
+        : `<span class="no-image" aria-hidden="true">✦</span>`;
+      const stockText = p.stock > 0 ? "Disponible: " + p.stock : "Consultar disponibilidad";
+      const disabled = p.stock <= 0 ? "disabled" : "";
+      return `
+        <article class="product">
+          <div class="product-image">${image}</div>
+          <div class="product-info">
+            <div class="category-label">${safe(p.categoria || "JALSTORE")}${p.subcategoria ? " · " + safe(p.subcategoria) : ""}</div>
+            <h3>${safe(p.producto)}</h3>
+            <div class="description">${safe(p.descripcion || p.marca || "Consulta los detalles de este producto.")}</div>
+            <div class="price">${money(p.precio)}</div>
+            <div class="stock">${safe(stockText)}</div>
+            <button class="btn" data-add="${safe(p.id)}" ${disabled}>${p.stock > 0 ? "Agregar al carrito" : "Sin stock"}</button>
+          </div>
+        </article>`;
+    }).join("");
+    $("emptyProducts").classList.toggle("hidden", result.length > 0);
+  }
+
+  function cartTotal() {
+    return cart.reduce((sum, item) => sum + item.precio * item.quantity, 0);
+  }
+
+  function addToCart(id) {
+    const p = products.find(item => item.id === String(id));
+    if (!p || p.stock <= 0) return;
+    const found = cart.find(item => item.id === p.id);
+    if (found) {
+      if (found.quantity >= p.stock) {
+        alert("No hay más unidades disponibles de este producto.");
+        return;
+      }
+      found.quantity++;
+    } else {
+      cart.push({...p, quantity: 1});
+    }
+    renderCart();
+  }
+
+  function changeQuantity(id, delta) {
+    const item = cart.find(p => p.id === String(id));
+    if (!item) return;
+    const next = item.quantity + delta;
+    if (next <= 0) cart = cart.filter(p => p.id !== String(id));
+    else if (next <= item.stock) item.quantity = next;
+    else alert("No hay más unidades disponibles.");
+    renderCart();
+  }
+
+  function renderCart() {
+    $("cartCount").textContent = cart.reduce((sum, p) => sum + p.quantity, 0);
+    $("cartTotal").textContent = money(cartTotal());
+    $("checkoutTotal").textContent = money(cartTotal());
+
+    if (!cart.length) {
+      $("cartItems").innerHTML = '<div class="empty">Tu carrito está vacío. Agrega productos para comenzar.</div>';
+      $("goCheckout").disabled = true;
+      $("goCheckout").style.opacity = ".5";
+      return;
+    }
+    $("goCheckout").disabled = false;
+    $("goCheckout").style.opacity = "1";
+    $("cartItems").innerHTML = cart.map(p => `
+      <div class="cart-row">
+        <div><strong>${safe(p.producto)}</strong><small>${money(p.precio)} por unidad</small>
+          <div class="quantity">
+            <button type="button" data-minus="${safe(p.id)}" aria-label="Restar">−</button>
+            <span>${p.quantity}</span>
+            <button type="button" data-plus="${safe(p.id)}" aria-label="Sumar">+</button>
+          </div>
+        </div>
+        <strong>${money(p.precio * p.quantity)}</strong>
+      </div>`).join("");
+  }
+
+  function openOverlay(id) { $(id).classList.add("open"); }
+  function closeOverlay(id) { $(id).classList.remove("open"); }
+
+  document.addEventListener("click", event => {
+    const add = event.target.closest("[data-add]");
+    const minus = event.target.closest("[data-minus]");
+    const plus = event.target.closest("[data-plus]");
+    const zone = event.target.closest("[data-category]");
+    const close = event.target.closest("[data-close]");
+
+    if (add) addToCart(add.dataset.add);
+    if (minus) changeQuantity(minus.dataset.minus, -1);
+    if (plus) changeQuantity(plus.dataset.plus, 1);
+    if (close) closeOverlay(close.dataset.close);
+    if (zone) {
+      activeCategory = zone.dataset.category;
+      document.querySelectorAll(".chip").forEach(chip =>
+        chip.classList.toggle("active", chip.dataset.category === activeCategory));
+      renderProducts();
+      $("catalogo").scrollIntoView({behavior:"smooth"});
+    }
+  });
+
+  document.querySelectorAll(".chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      activeCategory = chip.dataset.category;
+      document.querySelectorAll(".chip").forEach(other =>
+        other.classList.toggle("active", other === chip));
+      renderProducts();
+    });
+  });
+
+  $("search").addEventListener("input", renderProducts);
+  $("sort").addEventListener("change", renderProducts);
+  $("openCart").addEventListener("click", () => openOverlay("cartOverlay"));
+  $("goCheckout").addEventListener("click", () => {
+    if (!cart.length) return;
+    closeOverlay("cartOverlay");
+    openOverlay("checkoutOverlay");
+  });
+
+  document.querySelectorAll(".overlay").forEach(overlay => {
+    overlay.addEventListener("click", event => {
+      if (event.target === overlay) closeOverlay(overlay.id);
+    });
+  });
+
+  $("checkoutForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    if (orderInProgress || !cart.length) return;
+
+    const status = $("checkoutStatus");
+    const button = $("submitOrder");
+    orderInProgress = true;
+    button.disabled = true;
+    button.textContent = "Registrando pedido…";
+    status.className = "status";
+    status.textContent = "Guardando los datos del pedido…";
+
+    const form = new FormData(event.target);
+    const details = Object.fromEntries(form.entries());
+    const items = cart.map(p => `${p.producto} x${p.quantity} (${money(p.precio * p.quantity)})`).join(" | ");
+
+    const payload = {
+      action: "guardar_pedido",
+      cliente: details.cliente,
+      telefono: details.telefono,
+      distrito: details.distrito,
+      direccion: details.direccion,
+      metodoPago: details.metodoPago,
+      productos: items,
+      total: cartTotal(),
+      notas: details.notas || ""
+    };
+
+    try {
+      // Se usa text/plain para evitar una solicitud CORS preflight.
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {"Content-Type": "text/plain;charset=utf-8"},
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (!response.ok || result.ok !== true) throw new Error(result.error || "No se pudo registrar el pedido.");
+
+      status.className = "status success";
+      status.textContent = "Pedido " + result.pedido + " registrado. Preparando WhatsApp…";
+
+      const message = [
+        "Hola, quiero confirmar mi pedido en JALSTORE.",
+        "Pedido: " + result.pedido,
+        "Cliente: " + details.cliente,
+        "Teléfono: " + details.telefono,
+        "Distrito: " + details.distrito,
+        "Dirección: " + details.direccion,
+        "Pago: " + details.metodoPago,
+        "Productos: " + items,
+        "Total: " + money(cartTotal()),
+        details.notas ? "Notas: " + details.notas : ""
+      ].filter(Boolean).join("\n");
+
+      if (WHATSAPP_NUMBER) {
+        window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(message), "_blank", "noopener");
+      } else {
+        status.textContent = "Pedido registrado con número " + result.pedido + ". Falta configurar el WhatsApp oficial para enviar la confirmación.";
+      }
+
+      cart = [];
+      renderCart();
+      event.target.reset();
+    } catch (error) {
+      status.className = "status error";
+      status.textContent = "No pudimos confirmar el registro automático. No vuelvas a enviar todavía; revisa la conexión y consulta la hoja Pedidos.";
+      console.error("Error registrando pedido:", error);
+    } finally {
+      orderInProgress = false;
+      button.disabled = false;
+      button.textContent = "Registrar pedido y continuar";
+    }
+  });
+
+  renderCart();
+  loadProducts();
+</script>
+</body>
+</html>
