@@ -1,0 +1,429 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administración | JALSTORE</title>
+<style>
+:root {
+  --bg:#11130f; --panel:#1b1e18; --panel2:#242820;
+  --green:#737d39; --gold:#d5b65a; --text:#f4f1e8;
+  --muted:#a6a99a; --danger:#d86b63; --border:#363a2e;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px Arial,sans-serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;border:0;border-radius:8px;padding:11px 15px;background:var(--green);color:white;font-weight:700}
+button:hover{filter:brightness(1.12)}
+button.secondary{background:#393d32}
+button.danger{background:#873c35}
+input,select,textarea{width:100%;padding:11px;background:#12140f;border:1px solid var(--border);border-radius:8px;color:var(--text)}
+textarea{min-height:85px;resize:vertical}
+label{display:block;color:var(--muted);font-size:13px;margin-bottom:6px}
+.wrap{max-width:1250px;margin:auto;padding:20px}
+header{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:18px}
+.logo{font-size:25px;font-weight:900;letter-spacing:2px}
+.logo span{color:var(--gold)}
+.muted{color:var(--muted)}
+.small{font-size:12px;color:var(--muted)}
+.login{max-width:420px;margin:9vh auto;background:var(--panel);padding:28px;border:1px solid var(--border);border-radius:16px}
+.login h1{margin-top:0}
+.field{margin-bottom:15px}
+.notice{padding:12px;border-radius:8px;background:#292d22;color:var(--gold);margin:12px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.error{color:#ff9e94}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0}
+nav button{background:var(--panel2);border:1px solid var(--border)}
+nav button.active{background:var(--green);border-color:var(--green)}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:20px;margin-bottom:18px}
+h2{margin-top:0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.full{grid-column:1/-1}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}
+.stat{padding:16px;background:var(--panel);border:1px solid var(--border);border-radius:12px}
+.stat strong{display:block;font-size:26px;color:var(--gold);margin-top:6px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:650px}
+th,td{text-align:left;padding:12px;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--gold);font-size:13px}
+td{overflow-wrap:anywhere}
+td button{margin:2px;padding:8px 10px}
+.hidden{display:none!important}
+.product-form{margin-top:20px;padding-top:20px;border-top:1px solid var(--border)}
+.preview{max-width:100px;max-height:100px;object-fit:cover;border-radius:8px}
+@media(max-width:650px){
+ .wrap{padding:12px}.grid{grid-template-columns:1fr}.full{grid-column:auto}
+ .stats{grid-template-columns:1fr}.panel{padding:15px}
+ header .logo{font-size:22px}
+}
+</style>
+</head>
+<body>
+<section id="loginScreen" class="login">
+  <div class="logo">JAL<span>STORE</span></div>
+  <p class="muted">Panel de administración</p>
+  <div class="field">
+    <label for="password">Contraseña de administrador</label>
+    <input id="password" type="password" autocomplete="current-password"
+      placeholder="Introduce tu contraseña">
+  </div>
+  <button id="loginBtn" style="width:100%">Entrar al panel</button>
+  <div id="loginMessage" class="notice hidden"></div>
+  <p class="small">El acceso visual de esta página no protege por sí solo el backend. No la consideres segura para uso público hasta configurar autenticación en el servidor.</p>
+</section>
+
+<main id="adminScreen" class="wrap hidden">
+<header>
+  <div>
+    <div class="logo">JAL<span>STORE</span></div>
+    <div class="muted">Panel de administración</div>
+  </div>
+  <div class="actions">
+    <button class="secondary" id="refreshBtn">Actualizar datos</button>
+    <button class="danger" id="logoutBtn">Salir</button>
+  </div>
+</header>
+
+<div id="status" class="notice">Panel listo.</div>
+
+<div class="stats">
+  <div class="stat"><span class="muted">Productos cargados</span><strong id="statProducts">—</strong></div>
+  <div class="stat"><span class="muted">Unidades en stock</span><strong id="statStock">—</strong></div>
+  <div class="stat"><span class="muted">Pedidos cargados</span><strong id="statOrders">—</strong></div>
+</div>
+
+<nav>
+  <button class="active" data-tab="productsTab">Productos</button>
+  <button data-tab="ordersTab">Pedidos</button>
+</nav>
+
+<section id="productsTab" class="panel">
+  <h2>Productos e inventario</h2>
+  <p class="muted">Consulta los productos que devuelve Google Sheets.</p>
+  <div class="actions">
+    <button id="newProductBtn">＋ Nuevo producto</button>
+    <button class="secondary" id="loadProductsBtn">Recargar productos</button>
+  </div>
+  <div class="table-wrap" style="margin-top:16px">
+    <table>
+      <thead><tr>
+        <th>ID</th><th>Producto</th><th>Categoría</th><th>Precio</th>
+        <th>Stock</th><th>Activo</th><th>Acciones</th>
+      </tr></thead>
+      <tbody id="productsBody"><tr><td colspan="7">Cargando...</td></tr></tbody>
+    </table>
+  </div>
+
+  <div id="productFormWrap" class="product-form hidden">
+    <h2 id="formTitle">Nuevo producto</h2>
+    <form id="productForm">
+      <input type="hidden" id="originalId">
+      <div class="grid">
+        <div class="field"><label for="pId">ID del producto</label><input id="pId" required placeholder="Ej. MIL001"></div>
+        <div class="field"><label for="pName">Nombre</label><input id="pName" required></div>
+        <div class="field"><label for="pBrand">Marca</label><input id="pBrand"></div>
+        <div class="field"><label for="pCategory">Categoría</label>
+          <select id="pCategory" required>
+            <option value="ZONA MILITAR">ZONA MILITAR</option>
+            <option value="ZONA TECNOLÓGICA">ZONA TECNOLÓGICA</option>
+            <option value="NOVEDADES DE TEMPORADA">NOVEDADES DE TEMPORADA</option>
+          </select>
+        </div>
+        <div class="field"><label for="pSubcategory">Subcategoría</label><input id="pSubcategory"></div>
+        <div class="field"><label for="pPrice">Precio (S/)</label><input id="pPrice" type="number" min="0" step="0.01" required></div>
+        <div class="field"><label for="pStock">Stock</label><input id="pStock" type="number" min="0" step="1" required></div>
+        <div class="field"><label for="pActive">Estado</label>
+          <select id="pActive"><option value="TRUE">Activo</option><option value="FALSE">Inactivo</option></select>
+        </div>
+        <div class="field full"><label for="pDescription">Descripción</label><textarea id="pDescription"></textarea></div>
+        <div class="field full"><label for="pImageUrl">URL de imagen (opcional)</label><input id="pImageUrl" type="url" placeholder="https://..."></div>
+        <div class="field full"><label for="pImageFile">O subir imagen desde tu dispositivo</label><input id="pImageFile" type="file" accept="image/*"></div>
+      </div>
+      <div class="actions">
+        <button type="submit" id="saveProductBtn">Guardar producto</button>
+        <button type="button" class="secondary" id="cancelProductBtn">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section id="ordersTab" class="panel hidden">
+  <h2>Pedidos</h2>
+  <div class="actions"><button id="loadOrdersBtn">Recargar pedidos</button></div>
+  <div class="table-wrap" style="margin-top:16px">
+    <table>
+      <thead><tr><th>Pedido / Fecha</th><th>Cliente</th><th>Productos</th><th>Total</th><th>Estado</th><th>Actualizar</th></tr></thead>
+      <tbody id="ordersBody"><tr><td colspan="6">Cargando...</td></tr></tbody>
+    </table>
+  </div>
+</section>
+</main>
+
+<script>
+"use strict";
+
+/* CONFIGURACIÓN DEL BACKEND JALSTORE */
+const API_URL = "https://script.google.com/macros/s/AKfycbyGB0YYGuxhgFnqKa77LEagTVUST0o4RFrjm-fu8KmRJPvT5OOtPkqhnLMNzcGd8Rav/exec";
+
+/*
+  DEMO DE ACCESO VISUAL:
+  Esta contraseña se valida en el navegador y NO es un control de seguridad real.
+  Sustituir por autenticación validada en el servidor antes de uso público.
+*/
+const ADMIN_PASSWORD = "CAMBIAR-ANTES-DE-PUBLICAR";
+
+const $ = id => document.getElementById(id);
+let products = [];
+let orders = [];
+
+function message(text, isError=false) {
+  $("status").textContent = text;
+  $("status").classList.toggle("error", isError);
+}
+function showLoginMessage(text) {
+  $("loginMessage").textContent = text;
+  $("loginMessage").classList.remove("hidden");
+}
+function enterPanel() {
+  $("loginScreen").classList.add("hidden");
+  $("adminScreen").classList.remove("hidden");
+  loadAll();
+}
+$("loginBtn").addEventListener("click", () => {
+  if (ADMIN_PASSWORD === "CAMBIAR-ANTES-DE-PUBLICAR") {
+    showLoginMessage("Antes de usar el panel, configura el acceso seguro del servidor. No se ha habilitado el inicio de sesión.");
+    return;
+  }
+  if ($("password").value === ADMIN_PASSWORD) {
+    enterPanel();
+  } else {
+    showLoginMessage("Contraseña incorrecta.");
+  }
+});
+$("password").addEventListener("keydown", e => {
+  if (e.key === "Enter") $("loginBtn").click();
+});
+$("logoutBtn").addEventListener("click", () => location.reload());
+
+async function getJSON(url) {
+  const response = await fetch(url, {method:"GET", cache:"no-store"});
+  if (!response.ok) throw new Error("Error HTTP " + response.status);
+  return response.json();
+}
+async function postAction(payload) {
+  const response = await fetch(API_URL, {
+    method:"POST",
+    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify(payload)
+  });
+  if (!response.ok) throw new Error("Error HTTP " + response.status);
+  return response.json();
+}
+function first(obj, keys, fallback="") {
+  for (const key of keys) if (obj && obj[key] !== undefined && obj[key] !== null) return obj[key];
+  return fallback;
+}
+function money(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? "S/ " + n.toFixed(2) : "—";
+}
+function truthy(value) {
+  return value === true || String(value).toLowerCase() === "true" || String(value) === "1";
+}
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[ch]);
+}
+async function loadAll() {
+  await Promise.allSettled([loadProducts(), loadOrders()]);
+}
+async function loadProducts() {
+  $("productsBody").innerHTML = '<tr><td colspan="7">Cargando productos...</td></tr>';
+  try {
+    const data = await getJSON(API_URL + "?action=productos&t=" + Date.now());
+    products = Array.isArray(data) ? data : (data.productos || data.data || []);
+    renderProducts();
+    $("statProducts").textContent = products.length;
+    $("statStock").textContent = products.reduce((sum,p)=>sum + (Number(first(p,["Stock","stock"],0))||0),0);
+    message("Productos actualizados.");
+  } catch (err) {
+    $("productsBody").innerHTML = '<tr><td colspan="7">No se pudieron cargar los productos. Comprueba el backend.</td></tr>';
+    message("Error al cargar productos: " + err.message, true);
+  }
+}
+function renderProducts() {
+  if (!products.length) {
+    $("productsBody").innerHTML = '<tr><td colspan="7">No hay productos devueltos por el servidor.</td></tr>';
+    return;
+  }
+  $("productsBody").innerHTML = products.map((p,i) => {
+    const id = first(p,["ID","id"]);
+    return `<tr>
+      <td>${escapeHTML(id)}</td>
+      <td>${escapeHTML(first(p,["Producto","producto","Nombre","nombre"]))}<br><span class="small">${escapeHTML(first(p,["Marca","marca"]))}</span></td>
+      <td>${escapeHTML(first(p,["Categoría","Categoria","categoria"]))}</td>
+      <td>${money(first(p,["Precio","precio"],0))}</td>
+      <td>${escapeHTML(first(p,["Stock","stock"],0))}</td>
+      <td>${truthy(first(p,["Activo","activo"],false)) ? "Sí" : "No"}</td>
+      <td><button data-edit="${i}">Editar</button><button class="danger" data-disable="${i}">Desactivar</button></td>
+    </tr>`;
+  }).join("");
+  $("productsBody").querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>editProduct(Number(b.dataset.edit))));
+  $("productsBody").querySelectorAll("[data-disable]").forEach(b=>b.addEventListener("click",()=>disableProduct(Number(b.dataset.disable))));
+}
+function openProductForm(p=null) {
+  $("productForm").reset();
+  $("originalId").value = p ? first(p,["ID","id"]) : "";
+  $("pId").value = p ? first(p,["ID","id"]) : "";
+  $("pId").readOnly = !!p;
+  $("pName").value = p ? first(p,["Producto","producto","Nombre","nombre"]) : "";
+  $("pBrand").value = p ? first(p,["Marca","marca"]) : "";
+  $("pCategory").value = p ? first(p,["Categoría","Categoria","categoria"],"ZONA MILITAR") : "ZONA MILITAR";
+  $("pSubcategory").value = p ? first(p,["Subcategoría","Subcategoria","subcategoria"]) : "";
+  $("pPrice").value = p ? first(p,["Precio","precio"],"") : "";
+  $("pStock").value = p ? first(p,["Stock","stock"],"") : "";
+  $("pActive").value = p ? (truthy(first(p,["Activo","activo"],false)) ? "TRUE" : "FALSE") : "TRUE";
+  $("pDescription").value = p ? first(p,["Descripción","Descripcion","descripcion"]) : "";
+  $("pImageUrl").value = p ? first(p,["Imagen","imagen"]) : "";
+  $("formTitle").textContent = p ? "Editar producto" : "Nuevo producto";
+  $("productFormWrap").classList.remove("hidden");
+  $("productFormWrap").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function editProduct(i) {
+  const p = products[i];
+  if (p) openProductForm(p);
+}
+$("newProductBtn").addEventListener("click",()=>openProductForm());
+$("cancelProductBtn").addEventListener("click",()=>$("productFormWrap").classList.add("hidden"));
+$("productForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const editing = !!$("originalId").value;
+  const payload = {
+    action: editing ? "editar_producto" : "guardar_producto",
+    id: $("pId").value.trim(),
+    producto: $("pName").value.trim(),
+    marca: $("pBrand").value.trim(),
+    categoria: $("pCategory").value,
+    subcategoria: $("pSubcategory").value.trim(),
+    precio: Number($("pPrice").value),
+    stock: Number($("pStock").value),
+    descripcion: $("pDescription").value.trim(),
+    imagen: $("pImageUrl").value.trim(),
+    activo: $("pActive").value === "TRUE"
+  };
+  if (!payload.id || !payload.producto || payload.precio < 0 || payload.stock < 0) {
+    message("Revisa el ID, el nombre, el precio y el stock.", true);
+    return;
+  }
+  const file = $("pImageFile").files[0];
+  if (file) {
+    try {
+      payload.imagen = await uploadImage(file);
+    } catch(err) {
+      message("No se pudo subir la imagen: " + err.message, true);
+      return;
+    }
+  }
+  $("saveProductBtn").disabled = true;
+  try {
+    const result = await postAction(payload);
+    if (result && (result.success === false || result.error)) throw new Error(result.error || "Operación rechazada");
+    message("Solicitud enviada. Recargando productos...");
+    $("productFormWrap").classList.add("hidden");
+    await loadProducts();
+  } catch(err) {
+    message("No se pudo guardar el producto: " + err.message + ". Verifica que las acciones del backend coincidan.", true);
+  } finally {
+    $("saveProductBtn").disabled = false;
+  }
+});
+async function uploadImage(file) {
+  if (!file.type.startsWith("image/")) throw new Error("El archivo no es una imagen.");
+  if (file.size > 5 * 1024 * 1024) throw new Error("La imagen supera 5 MB.");
+  const base64 = await new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>resolve(String(reader.result).split(",")[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+  const result = await postAction({
+    action:"subir_imagen",
+    nombre:file.name,
+    mimeType:file.type,
+    base64
+  });
+  if (result && (result.success === false || result.error)) throw new Error(result.error || "Error de subida");
+  const url = first(result,["url","imagen","imageUrl"]);
+  if (!url) throw new Error("El backend no devolvió una URL de imagen.");
+  return url;
+}
+async function disableProduct(i) {
+  const p = products[i];
+  if (!p) return;
+  const id = first(p,["ID","id"]);
+  if (!confirm("¿Desactivar el producto " + id + "?")) return;
+  try {
+    const result = await postAction({action:"desactivar_producto",id});
+    if (result && (result.success === false || result.error)) throw new Error(result.error || "Operación rechazada");
+    message("Solicitud de desactivación enviada.");
+    await loadProducts();
+  } catch(err) {
+    message("No se pudo desactivar: " + err.message, true);
+  }
+}
+async function loadOrders() {
+  $("ordersBody").innerHTML = '<tr><td colspan="6">Cargando pedidos...</td></tr>';
+  try {
+    const data = await getJSON(API_URL + "?action=pedidos&t=" + Date.now());
+    orders = Array.isArray(data) ? data : (data.pedidos || data.data || []);
+    renderOrders();
+    $("statOrders").textContent = orders.length;
+  } catch(err) {
+    $("ordersBody").innerHTML = '<tr><td colspan="6">No se pudieron cargar los pedidos. Comprueba el backend.</td></tr>';
+    message("Error al cargar pedidos: " + err.message, true);
+  }
+}
+function renderOrders() {
+  if (!orders.length) {
+    $("ordersBody").innerHTML = '<tr><td colspan="6">Todavía no hay pedidos.</td></tr>';
+    return;
+  }
+  $("ordersBody").innerHTML = orders.map((o,i)=>{
+    const orderId = first(o,["Pedido","pedido","id"]);
+    return `<tr>
+      <td>${escapeHTML(orderId)}<br><span class="small">${escapeHTML(first(o,["Fecha","fecha"]))}</span></td>
+      <td>${escapeHTML(first(o,["Cliente","cliente"]))}<br>${escapeHTML(first(o,["Teléfono","Telefono","telefono"]))}<br><span class="small">${escapeHTML(first(o,["Distrito","distrito"]))}</span></td>
+      <td>${escapeHTML(first(o,["Productos","productos"]))}</td>
+      <td>${money(first(o,["Total","total"],0))}</td>
+      <td>${escapeHTML(first(o,["Estado","estado"],"Pendiente"))}</td>
+      <td><select data-state="${i}">
+        ${["Pendiente","Confirmado","Preparando","En camino","Entregado","Cancelado"].map(s=>`<option ${String(first(o,["Estado","estado"],"Pendiente"))===s?"selected":""}>${s}</option>`).join("")}
+      </select><button data-update="${i}">Guardar estado</button></td>
+    </tr>`;
+  }).join("");
+  $("ordersBody").querySelectorAll("[data-update]").forEach(b=>b.addEventListener("click",async()=>{
+    const i=Number(b.dataset.update), o=orders[i];
+    const id=first(o,["Pedido","pedido","id"]);
+    const estado=$("ordersBody").querySelector(`[data-state="${i}"]`).value;
+    try {
+      const result=await postAction({action:"actualizar_estado_pedido",pedido:id,estado});
+      if(result && (result.success===false || result.error)) throw new Error(result.error||"Operación rechazada");
+      message("Solicitud de actualización enviada.");
+      await loadOrders();
+    } catch(err) {
+      message("No se pudo actualizar el estado: "+err.message,true);
+    }
+  }));
+}
+document.querySelectorAll("nav button").forEach(btn=>btn.addEventListener("click",()=>{
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b===btn));
+  ["productsTab","ordersTab"].forEach(id=>$(id).classList.toggle("hidden",id!==btn.dataset.tab));
+}));
+$("refreshBtn").addEventListener("click",loadAll);
+$("loadProductsBtn").addEventListener("click",loadProducts);
+$("loadOrdersBtn").addEventListener("click",loadOrders);
+</script>
+</body>
+</html>
