@@ -190,15 +190,27 @@ function enterPanel() {
   $("adminScreen").classList.remove("hidden");
   loadAll();
 }
-$("loginBtn").addEventListener("click", () => {
-  if (ADMIN_PASSWORD === "CAMBIAR-ANTES-DE-PUBLICAR") {
-    showLoginMessage("Antes de usar el panel, configura el acceso seguro del servidor. No se ha habilitado el inicio de sesión.");
-    return;
-  }
-  if ($("password").value === ADMIN_PASSWORD) {
+$("loginBtn").addEventListener("click", async () => {
+  const boton = $("loginBtn");
+  boton.disabled = true;
+
+  try {
+    const resultado = await postAction({
+      action: "login_admin",
+      password: $("password").value
+    });
+
+    if (!resultado.ok || !resultado.token) {
+      showLoginMessage(resultado.error || "No se pudo iniciar sesión.");
+      return;
+    }
+
+    adminToken = resultado.token;
     enterPanel();
-  } else {
-    showLoginMessage("Contraseña incorrecta.");
+  } catch (error) {
+    showLoginMessage("Error de conexión: " + error.message);
+  } finally {
+    boton.disabled = false;
   }
 });
 $("password").addEventListener("keydown", e => {
@@ -211,13 +223,27 @@ async function getJSON(url) {
   if (!response.ok) throw new Error("Error HTTP " + response.status);
   return response.json();
 }
+let adminToken = "";
+
 async function postAction(payload) {
+  const datos = { ...payload };
+
+  if (datos.action !== "login_admin" && adminToken) {
+    datos.token = adminToken;
+  }
+
   const response = await fetch(API_URL, {
-    method:"POST",
-    headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body:JSON.stringify(payload)
+    method: "POST",
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8"
+    },
+    body: JSON.stringify(datos)
   });
-  if (!response.ok) throw new Error("Error HTTP " + response.status);
+
+  if (!response.ok) {
+    throw new Error("Error HTTP " + response.status);
+  }
+
   return response.json();
 }
 function first(obj, keys, fallback="") {
